@@ -1,0 +1,19 @@
+{
+  "name": "resilience4js",
+  "version": "1.0.0",
+  "description": "",
+  "main": "resilience4js.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/dm03514/resilience4js.git"
+  },
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/dm03514/resilience4js/issues"
+  },
+  "homepage": "https://github.com/dm03514/resilience4js#readme"
+}
