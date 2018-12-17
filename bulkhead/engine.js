@@ -8,14 +8,19 @@ class Bulkhead {
 
     decoratePromise(fn) {
         return () => {
+
+            // the bulkhead is saturated reject the promise
             if (this.availableCalls < 1) {
                 return new Promise((_, reject) => {
                     reject(new Error('no available calls'));
                 });
             }
-            // remove the call and return the function
+
+            // the bulkhead has capacity, record that this
+            // function is now being invoked
             this.availableCalls = this.availableCalls - 1;
 
+            // invoke the function and then free up a call
             return fn()
             .then((...args) => {
                 this.availableCalls = this.availableCalls + 1;
