@@ -15,5 +15,8 @@
   "bugs": {
     "url": "https://github.com/dm03514/resilience4js/issues"
   },
-  "homepage": "https://github.com/dm03514/resilience4js#readme"
+  "homepage": "https://github.com/dm03514/resilience4js#readme",
+  "devDependencies": {
+    "mocha": "^5.2.0"
+  }
 }
