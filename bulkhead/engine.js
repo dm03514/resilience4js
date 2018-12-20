@@ -1,14 +1,58 @@
+const metrics = require('../metrics/metrics.js');
 
 
 class Bulkhead {
-    constructor(maxConcurrentCalls) {
+    constructor(id, maxConcurrentCalls, bulkheadMetrics=null) {
         this.maxConcurrentCalls = maxConcurrentCalls;
         this.availableCalls = this.maxConcurrentCalls;
+        this.id = id;
+        this.metrics = bulkheadMetrics || metrics.New();
+    }
+
+    decorateFunction(fn) {
+        this.metrics.emit({
+            event: 'decorate',
+            tags: [
+                {id: this.id},
+            ],
+            type: this.metrics.type.COUNTER,
+            value: 1,
+            component: 'bulkhead'
+        });
+
+        return (...wrappedArgs) => {
+            this.metrics.emit({
+                event: 'invoked',
+                tags: [
+                    {id: this.id},
+                    {calls_remaining: this.availableCalls},
+                ],
+                type: this.metrics.type.COUNTER,
+                value: 1,
+                component: 'bulkhead'
+            });
+            if (this.availableCalls < 1) {
+                throw new Error('no available calls');
+            }
+
+            const result = fn(...wrappedArgs);
+            this.availableCalls = this.availableCalls + 1;
+            return result;
+        }
     }
 
     decoratePromise(fn) {
-        return () => {
+        this.metrics.emit({
+            event: 'decorate',
+            tags: [
+                {id: this.id},
+            ],
+            type: this.metrics.type.COUNTER,
+            value: 1,
+            component: 'bulkhead'
+        });
 
+        return (...wrappedArgs) => {
             // the bulkhead is saturated reject the promise
             if (this.availableCalls < 1) {
                 return new Promise((_, reject) => {
@@ -21,7 +65,7 @@ class Bulkhead {
             this.availableCalls = this.availableCalls - 1;
 
             // invoke the function and then free up a call
-            return fn()
+            return fn(...wrappedArgs)
             .then((...args) => {
                 this.availableCalls = this.availableCalls + 1;
 

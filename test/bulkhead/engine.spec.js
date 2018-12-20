@@ -6,29 +6,27 @@ const hiFn = () => {
     return new Promise((resolve, _) => {
         resolve('hello');
     });
-}
+};
 
 describe('Bulkhead', () => {
-    it('throws error when maxConcurrentCalls is reached', (done) => {
-        const bulkhead = new Bulkhead(0);
+    it('throws error when maxConcurrentCalls is reached', () => {
+        const bulkhead = new Bulkhead('global', 0);
 
         let wrapped = bulkhead.decoratePromise(hiFn);
 
-        wrapped()
+        return wrapped()
         .catch((err) => {
             assert.equal('no available calls', err.message);
-        })
-        .finally(done);
+        });
     });
 
-    it('resets calls when promise is complete', (done) => {
-        const bulkhead = new Bulkhead(1);
+    it('resets calls when promise is complete', () => {
+        const bulkhead = new Bulkhead('global', 1);
         let wrapped = bulkhead.decoratePromise(hiFn);
 
-        wrapped()
+        return wrapped()
         .then(() => {
             assert.equal(1, bulkhead.availableConcurrentCalls())
-        })
-        .finally(done);
+        });
     });
 });
