@@ -12,9 +12,9 @@ class Bulkhead {
     decorateFunction(fn) {
         this.metrics.emit({
             event: 'decorate',
-            tags: [
-                {id: this.id},
-            ],
+            tags: {
+                id: this.id,
+            },
             type: this.metrics.type.COUNTER,
             value: 1,
             component: 'bulkhead'
@@ -23,10 +23,10 @@ class Bulkhead {
         return (...wrappedArgs) => {
             this.metrics.emit({
                 event: 'invoked',
-                tags: [
-                    {id: this.id},
-                    {calls_remaining: this.availableCalls},
-                ],
+                tags: {
+                    id: this.id,
+                    calls_remaining: !!this.availableCalls,
+                },
                 type: this.metrics.type.COUNTER,
                 value: 1,
                 component: 'bulkhead'

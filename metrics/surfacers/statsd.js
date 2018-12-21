@@ -1,7 +1,4 @@
 
-
-
-
 class StatsDSurfacer {
     constructor(metrics, client) {
         this.metrics = metrics;
@@ -28,4 +25,4 @@ class StatsDSurfacer {
 
 module.exports = {
     StatsDSurfacer: StatsDSurfacer,
-}
+};
