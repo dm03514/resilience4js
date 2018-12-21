@@ -9,38 +9,6 @@ class Bulkhead {
         this.metrics = bulkheadMetrics || metrics.New();
     }
 
-    decorateFunction(fn) {
-        this.metrics.emit({
-            event: 'decorate',
-            tags: {
-                id: this.id,
-            },
-            type: this.metrics.type.COUNTER,
-            value: 1,
-            component: 'bulkhead'
-        });
-
-        return (...wrappedArgs) => {
-            this.metrics.emit({
-                event: 'invoked',
-                tags: {
-                    id: this.id,
-                    calls_remaining: !!this.availableCalls,
-                },
-                type: this.metrics.type.COUNTER,
-                value: 1,
-                component: 'bulkhead'
-            });
-            if (this.availableCalls < 1) {
-                throw new Error('no available calls');
-            }
-
-            const result = fn(...wrappedArgs);
-            this.availableCalls = this.availableCalls + 1;
-            return result;
-        }
-    }
-
     decoratePromise(fn) {
         this.metrics.emit({
             event: 'decorate',
@@ -55,6 +23,17 @@ class Bulkhead {
         return (...wrappedArgs) => {
             // the bulkhead is saturated reject the promise
             if (this.availableCalls < 1) {
+
+                this.metrics.emit({
+                    event: 'exhausted',
+                    tags: {
+                        id: this.id,
+                    },
+                    type: this.metrics.type.COUNTER,
+                    value: 1,
+                    component: 'bulkhead'
+                });
+
                 return new Promise((_, reject) => {
                     reject(new Error('no available calls'));
                 });
