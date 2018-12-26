@@ -12,9 +12,9 @@ class Bulkhead {
     decoratePromise(fn) {
         this.metrics.emit({
             event: 'decorate',
-            tags: [
-                {id: this.id},
-            ],
+            tags: {
+                id: this.id
+            },
             type: this.metrics.type.COUNTER,
             value: 1,
             component: 'bulkhead'
@@ -45,12 +45,8 @@ class Bulkhead {
 
             // invoke the function and then free up a call
             return fn(...wrappedArgs)
-            .then((...args) => {
+            .finally(() => {
                 this.availableCalls = this.availableCalls + 1;
-
-                return new Promise((resolve, _) => {
-                    resolve(...args);
-                });
             });
         }
     }
@@ -58,8 +54,57 @@ class Bulkhead {
     availableConcurrentCalls() {
         return this.availableCalls;
     }
+
+    utilizationPercentage() {
+        return (this.maxConcurrentCalls - this.availableCalls) / this.maxConcurrentCalls;
+    }
 }
 
+/**
+ * Instantiates a bulkhead and begins emitting availableCall metrics
+ * @param id
+ * @param maxConcurrentCalls
+ * @param metrics
+ * @constructor
+ */
+const New = (id, maxConcurrentCalls, metrics=null, enableStatusPolling=true) => {
+    const bulkhead = new Bulkhead(id, maxConcurrentCalls, metrics);
+    if (enableStatusPolling) {
+        setInterval(() => {
+            bulkhead.metrics.emit({
+                event: 'available_calls',
+                tags: {
+                    id: bulkhead.id,
+                },
+                type: bulkhead.metrics.type.GAUGE,
+                value: bulkhead.availableConcurrentCalls(),
+                component: 'bulkhead'
+            });
+
+            bulkhead.metrics.emit({
+                event: 'max_calls',
+                tags: {
+                    id: bulkhead.id,
+                },
+                type: bulkhead.metrics.type.GAUGE,
+                value: bulkhead.maxConcurrentCalls,
+                component: 'bulkhead'
+            });
+
+            bulkhead.metrics.emit({
+                event: 'utilization',
+                tags: {
+                    id: bulkhead.id,
+                },
+                type: bulkhead.metrics.type.GAUGE,
+                value: bulkhead.utilizationPercentage(),
+                component: 'bulkhead'
+            })
+        }, 5000);
+    }
+    return bulkhead;
+};
+
 module.exports = {
-    Bulkhead: Bulkhead,
+    New: New,
 };

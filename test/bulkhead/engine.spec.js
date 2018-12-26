@@ -1,5 +1,5 @@
 const assert = require('assert');
-const Bulkhead = require('../../bulkhead/engine.js').Bulkhead;
+const Bulkhead = require('../../bulkhead/engine.js');
 
 
 const hiFn = () => {
@@ -10,7 +10,12 @@ const hiFn = () => {
 
 describe('Bulkhead', () => {
     it('throws error when maxConcurrentCalls is reached', () => {
-        const bulkhead = new Bulkhead('global', 0);
+        const bulkhead = Bulkhead.New(
+            'global',
+            0,
+            metrics=null,
+            enableStatusPolling=false,
+        );
 
         let wrapped = bulkhead.decoratePromise(hiFn);
 
@@ -21,7 +26,12 @@ describe('Bulkhead', () => {
     });
 
     it('resets calls when promise is complete', () => {
-        const bulkhead = new Bulkhead('global', 1);
+        const bulkhead = Bulkhead.New(
+            'global',
+            1,
+            metrics=null,
+            enableStatusPolling=false,
+        );
         let wrapped = bulkhead.decoratePromise(hiFn);
 
         return wrapped()

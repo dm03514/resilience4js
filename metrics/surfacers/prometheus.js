@@ -1,5 +1,5 @@
 
-class StatsDSurfacer {
+class Prometheus {
     constructor(metrics, client) {
         this.metrics = metrics;
         this.client = client;
@@ -10,17 +10,17 @@ class StatsDSurfacer {
     }
 
     handleMetric(metrics, client, metric) {
+        const metricName = metric.component + '_' + metric.event;
+
         switch (metric.type) {
             case metrics.type.COUNTER:
-                client.increment(
-                    metric.component + '.' + metric.event,
-                    metric.tags);
+                client[metricName].inc(metric.tags, metric.value);
                 break;
             case metrics.type.GAUGE:
-                client.gauge(
-                    metric.component + '.' + metric.event,
-                    metric.value,
-                    metric.tags);
+                client[metricName].set(metric.tags, metric.value);
+                break;
+            case metrics.type.HISTOGRAM:
+                client[metricName].observe(metric.tags, metric.value);
                 break;
             default:
                 throw new Error('not implemented');
@@ -28,7 +28,6 @@ class StatsDSurfacer {
     }
 }
 
-
 module.exports = {
-    StatsDSurfacer: StatsDSurfacer,
+    Prometheus: Prometheus,
 };

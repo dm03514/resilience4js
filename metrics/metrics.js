@@ -1,8 +1,11 @@
 const rxjs = require('rxjs');
 const StatsDSurfacer = require('./surfacers/statsd.js').StatsDSurfacer;
+const Prometheus = require('./surfacers/prometheus.js').Prometheus;
 
 const MetricType = Object.freeze({
     COUNTER: 'counter',
+    GAUGE: 'gauge',
+    HISTOGRAM: 'histogram',
 });
 
 class Metrics {
@@ -23,6 +26,7 @@ class Metrics {
 module.exports = {
     New: () => new Metrics(),
     Surfacers: {
-        StatsD: StatsDSurfacer
+        StatsD: StatsDSurfacer,
+        Prometheus: Prometheus,
     }
 };
