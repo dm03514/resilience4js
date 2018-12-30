@@ -3,56 +3,46 @@
 
 
 class Retry {
-    constructor(id, strategy, metrics=null) {
+    constructor(id, retryStrategy, metrics=null) {
         this.id = id;
-        this.strategy = strategy;
+        this.retryStrategy = retryStrategy;
         this.metrics = metrics;
     }
 
+    retrier(strategy, fn, ...args) {
+        return fn(...args)
+        .catch((err) => {
+            if (strategy.shouldRetry(err)) {
+                return new Promise((resolve, reject) => {
+                    setTimeout(() => {
+                        resolve(
+                            this.retrier(strategy, fn, ...args)
+                        );
+                    }, strategy.timeout());
+                })
+            }
+
+            return new Promise((_, reject) => {
+                reject(err)
+            });
+        });
+    }
+
     decoratePromise(fn) {
-        const retry = this.strategy.New();
+        const strategy = this.retryStrategy.New();
 
         return (...wrappedArgs) => {
-            return fn(...wrappedArgs)
-            .catch((err) => {
-
-            });
-
-            new Promise((resolve, reject) => {
-                // resolved if there is no exception
-            });
-            while (retry.shouldRetry()) {
-                fn(...wrappedArgs)
-                    .catch()
-
-
-                // return when finally complete
-            }
-            // execute the function
-            fn(...wrappedArgs)
-            .catch((err) => {
-                if (retry.shouldRetry(err)) {
-                    return new Promise((resolve, reject) => {
-                        setTimetout(
-                            fn.bind(null, ...wrappedArgs),
-                            retry.timeout());
-                    }).catch((err => {
-                        if (retry.shouldRetry(err)) {
-                            return new Promise((resolve, reject) => {
-                                setTimetout(
-                                    fn.bind(null, ...wrappedArgs),
-                                    retry.timeout());
-                            });
-                        }
-                    }))
-                }
-            });
-
-            // catch any errors
-
-            // if retry.CanRetry()
-                // setTimeout(fn.bind(...wrappedArgs)
+            console.log(strategy);
+            console.log(fn);
+            console.log(wrappedArgs);
+            return this.retrier(strategy, fn, ...wrappedArgs);
         }
     }
 
+}
+
+module.exports = {
+    New: (id, retryStrategy, metrics=null) => {
+        return new Retry(id, retryStrategy, metrics);
+    }
 }
