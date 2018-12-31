@@ -1,12 +1,11 @@
-
-
+const ms = require('../metrics/metrics.js');
 
 
 class Retry {
     constructor(id, retryStrategy, metrics=null) {
         this.id = id;
         this.retryStrategy = retryStrategy;
-        this.metrics = metrics;
+        this.metrics = metrics || ms.New();
     }
 
     retrier(strategy, fn, ...args) {
@@ -31,11 +30,11 @@ class Retry {
     decoratePromise(fn) {
         const strategy = this.retryStrategy.New();
 
-        return (...wrappedArgs) => {
-            console.log(strategy);
-            console.log(fn);
-            console.log(wrappedArgs);
-            return this.retrier(strategy, fn, ...wrappedArgs);
+        return {
+            fn: (...wrappedArgs) => {
+                return this.retrier(strategy, fn, ...wrappedArgs);
+            },
+            strategy: strategy,
         }
     }
 

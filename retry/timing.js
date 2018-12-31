@@ -8,6 +8,10 @@ class FixedInterval {
     timeout() {
         return this.intervalMS;
     }
+
+    New() {
+        return this;
+    }
 }
 
 module.exports = {
