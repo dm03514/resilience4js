@@ -28,13 +28,11 @@ class Retry {
     }
 
     decoratePromise(fn) {
-        const strategy = this.retryStrategy.New();
-
         return {
             fn: (...wrappedArgs) => {
+                const strategy = this.retryStrategy.New();
                 return this.retrier(strategy, fn, ...wrappedArgs);
-            },
-            strategy: strategy,
+            }
         }
     }
 

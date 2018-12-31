@@ -12,7 +12,7 @@ class UntilLimit {
     shouldRetry(err) {
         const doRetry = this.current < this.maxAttempts;
         this.metrics.emit({
-            event: 'retry',
+            event: 'shouldretry',
             tags: {
                 strategy: 'untillimit',
                 doretry:  doRetry,
@@ -27,7 +27,7 @@ class UntilLimit {
     timeout() {
         this.current = this.current + 1;
         this.metrics.emit({
-            event: 'call.num',
+            event: 'call_num',
             tags: {
                 strategy: 'untillimit',
             },
@@ -37,26 +37,26 @@ class UntilLimit {
         });
         const timeout = this.timing.timeout();
         this.metrics.emit({
-            event: 'timeout',
+            event: 'attempt',
             tags: {
                 strategy: 'untillimit',
             },
             value: this.current,
-            type: this.metrics.type.GAUGE,
+            type: this.metrics.type.HISTOGRAM,
             component: 'retry'
         });
         return timeout;
     }
 
     New() {
-        return new UntilLimit(this.timing.New(), this.maxAttempts);
+        return new UntilLimit(this.timing.New(), this.maxAttempts, this.metrics);
     }
 }
 
 module.exports = {
     UntilLimit: {
-        New: (timing, maxAttempts=3) => {
-            return new UntilLimit(timing, maxAttempts);
+        New: (timing, maxAttempts=3, metrics=null) => {
+            return new UntilLimit(timing, maxAttempts, metrics);
         }
     }
 }
