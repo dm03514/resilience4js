@@ -26,30 +26,26 @@ class UntilLimit {
 
     timeout() {
         this.current = this.current + 1;
-        this.metrics.emit({
-            event: 'call_num',
-            tags: {
-                strategy: 'untillimit',
-            },
-            value: this.current,
-            type: this.metrics.type.GAUGE,
-            component: 'retry'
-        });
         const timeout = this.timing.timeout();
         this.metrics.emit({
             event: 'attempt',
             tags: {
                 strategy: 'untillimit',
+                number: this.current,
             },
-            value: this.current,
-            type: this.metrics.type.HISTOGRAM,
+            value: 1,
+            type: this.metrics.type.COUNTER,
             component: 'retry'
         });
         return timeout;
     }
 
     New() {
-        return new UntilLimit(this.timing.New(), this.maxAttempts, this.metrics);
+        return new UntilLimit(
+            this.timing.New(),
+            this.maxAttempts,
+            this.metrics,
+        );
     }
 }
 
