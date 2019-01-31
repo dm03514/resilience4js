@@ -20,6 +20,7 @@
     "mocha": "^5.2.0"
   },
   "dependencies": {
+    "prom-client": "^11.2.1",
     "rxjs": "^6.3.3"
   }
 }
